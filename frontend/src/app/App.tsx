@@ -11,6 +11,7 @@ import './I18n';
 
 const App: React.FC = () => {
   const [isConnect, setIsConnect] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
 
   useEffect(() => {
     if (!isConnect) {
@@ -20,12 +21,14 @@ const App: React.FC = () => {
           iAmReady(nexo);
         })
         .catch(() => {
-          setIsConnect(false);
+          if (import.meta.env.DEV) {
+            setIsPreview(true);
+          }
         });
     }
   }, []);
 
-  if (!isConnect)
+  if (!isConnect && !isPreview)
     return (
       <Box
         height="100vh"
@@ -37,17 +40,27 @@ const App: React.FC = () => {
       </Box>
     );
 
-  return (
-    <ErrorBoundary nexo={nexo}>
-      <DarkModeProvider>
-        <ToastProvider>
-          <BrowserRouter>
+  const application = (
+    <DarkModeProvider>
+      <ToastProvider>
+        <BrowserRouter>
+          {isPreview ? (
+            <Router />
+          ) : (
             <NexoSyncRoute>
               <Router />
             </NexoSyncRoute>
-          </BrowserRouter>
-        </ToastProvider>
-      </DarkModeProvider>
+          )}
+        </BrowserRouter>
+      </ToastProvider>
+    </DarkModeProvider>
+  );
+
+  if (isPreview) return application;
+
+  return (
+    <ErrorBoundary nexo={nexo}>
+      {application}
     </ErrorBoundary>
   );
 };
